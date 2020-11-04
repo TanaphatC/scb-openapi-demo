@@ -1,0 +1,9 @@
+spring:
+  application: scb-openapi-demo
+  mvc:
+    view:
+      prefix: /WEB-INF/pages/
+      suffix: .jsp
+
+logging:
+  config: classpath:config/log4j2.xml

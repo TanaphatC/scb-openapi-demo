@@ -1,2 +1,4 @@
-com\azay\CashlessController.class
-com\azay\SpringBootWebApplication.class
+th\co\azay\model\DeeplinkResponse.class
+th\co\azay\SpringBootWebApplication.class
+th\co\azay\controller\WebController.class
+th\co\azay\controller\ApiController.class

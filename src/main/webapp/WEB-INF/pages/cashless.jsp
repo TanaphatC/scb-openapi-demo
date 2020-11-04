@@ -57,7 +57,7 @@
                         </a>
                      </div>
                      <div>
-                        <a href="scbeasysim://purchase/dad96674-ce9d-4830-88c5-8aa11cb953d4">
+                        <a id="scbdeeplink" href="${scbdeeplink}">
                             <img src="/images/scb.jpg" alt="SCB Easy">
                         </a>
                         <a href="#">
