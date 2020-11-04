@@ -78,7 +78,7 @@
               </div>
             </div>
             <button type="submit" class="w-100 btn btn-primary mt-3">
-              Generate Deeplinks
+              Cashless Payment
             </button>
           </form>
 
@@ -119,17 +119,17 @@
             }
           }),
         })
-          .then(res => res.json())
-          .then(json => {
-            const { url } = json.deeplinks
-            window.location.href = `${url}`;
-          })
-          .catch(e => {
-            alert(`error: some inputs might break bank's rules (${e})`)
-          })
-          .finally(() => {
+        .then(response => {
+            return response.json()
+        })
+        .then(json => {
+            console.log(json)
+            var scbDeeplink = json.scbDeeplink
+            window.location.href = scbDeeplink
+        })
+        .finally(() => {
             formBtn.disabled = false;
-          });
+        });
       });
 
     </script>
