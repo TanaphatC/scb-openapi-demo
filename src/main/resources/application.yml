@@ -4,6 +4,10 @@ spring:
     view:
       prefix: /WEB-INF/pages/
       suffix: .jsp
+  datasource:
+    url: jdbc:mysql://localhost:3306/cashless-demo
+    username: cashless
+    password: N0sSl#123
 
 logging:
   config: classpath:config/log4j2.xml
