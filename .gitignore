@@ -1,0 +1,8 @@
+!.gitignore
+.idea/*
+.settings/*
+target/
+target/*
+*/target/*
+.target/*
+captcha-service.iml
