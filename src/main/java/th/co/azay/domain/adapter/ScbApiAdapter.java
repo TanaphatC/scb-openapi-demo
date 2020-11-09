@@ -109,7 +109,7 @@ public class ScbApiAdapter implements ScbAdapter {
             body.setTransactionType("PURCHASE");
 
             MerchantMetaData merchantMetaData = new MerchantMetaData();
-            merchantMetaData.setCallbackUrl("http://localhost:8080/redirect");
+            merchantMetaData.setCallbackUrl("http://20.195.106.49/redirect");
             MerchantInfo merchantInfo = new MerchantInfo();
             merchantInfo.setName("SANDBOX MERCHANT NAME");
             body.setMerchantMetaData(merchantMetaData);
