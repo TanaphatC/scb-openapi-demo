@@ -51,7 +51,7 @@ public class ApiController {
 
     @GetMapping("/version")
     public String redirect(){
-        return "1.0.0";
+        return "1.0.1";
     }
 
 }
