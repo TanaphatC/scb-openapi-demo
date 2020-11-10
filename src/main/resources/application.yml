@@ -12,6 +12,11 @@ spring:
     url: jdbc:mysql://cashless-mysql.mysql.database.azure.com:3306/cashless?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&useLegacyDatetimeCode=false&serverTimezone=UTC
     username: cashless@cashless-mysql
     password: "N0sSl#123"
+    hikari:
+      maximum-pool-size: 30
+      onnection-timeout: 180000
+      validation-query: SELECT 1
+      test-on-borrow: true
 
 logging:
   config: classpath:config/log4j2.xml

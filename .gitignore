@@ -22,14 +22,6 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-!.gitignore
-.idea/*
-.settings/*
-target/
-target/*
-*/target/*
-.target/*
-
 # VSCode artifacts
 .app
 .vscode
@@ -37,5 +29,14 @@ target/*
 .classpath
 .factorypath
 .project
+.idea/*
 bin
+.idea/*
+.settings/*
+target/
+target/*
+*/target/*
+.target/*
+.idea/workspace.xml
 spring-boot-web-jsp.iml
+>>>>>>> 8d7a1dea7fa3fa0f99cf3a39d7ebc9ebb5ac5f94

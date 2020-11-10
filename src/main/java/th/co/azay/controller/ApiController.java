@@ -49,4 +49,9 @@ public class ApiController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/version")
+    public String redirect(){
+        return "1.0.0";
+    }
+
 }
