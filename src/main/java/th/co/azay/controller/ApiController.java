@@ -27,11 +27,9 @@ public class ApiController {
         AccessTokenApiResponse accessToken = scbAdapter.generateAccessToken();
         logger.info("scb token response = {}", accessToken);
 
-//        String scbDeeplink = "scbeasysim://purchase/dad96674-ce9d-4830-88c5-8aa11cb953d4";
-
         DeeplinkApiResponse deeplink = scbAdapter.deeplinkForPayment(accessToken, request);
 
-        String redirect = "/cashless?scb="+deeplink.getData().getDeeplinkUrl();
+        String redirect = "/cashless?scb="+deeplink.getData().getDeeplinkUrl()+"&transactionId="+deeplink.getData().getTransactionId();
         return ResponseEntity.ok(new DeeplinkResponse(redirect));
     }
 
@@ -44,19 +42,6 @@ public class ApiController {
         ScbTransactions scbTransactions = scbAdapter.getTransactions(transactionId, accessToken);
 
         return ResponseEntity.ok(scbTransactions);
-    }
-
-    @GetMapping("/redirect")
-    @ResponseBody
-    public ResponseEntity redirect(@RequestParam String status){
-        logger.info("redirect status = {}", status);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/callbackeee")
-    public ResponseEntity callBack(@RequestBody String body){
-        logger.info("call back body = {}", body);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/version")
