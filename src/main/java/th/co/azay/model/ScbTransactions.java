@@ -3,7 +3,6 @@ package th.co.azay.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import th.co.azay.application.constants.ScbTransactionStatus;
 
 import java.util.Date;
 import java.util.List;
