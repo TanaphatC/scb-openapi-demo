@@ -109,7 +109,7 @@ public class ScbApiAdapter implements ScbAdapter {
             body.setTransactionType("PURCHASE");
 
             MerchantMetaData merchantMetaData = new MerchantMetaData();
-            merchantMetaData.setCallbackUrl("http://cashless-app.southeastasia.azurecontainer.io:8080/redirect");
+            merchantMetaData.setCallbackUrl("http://cashless-app.southeastasia.azurecontainer.io:8080/api/redirect");
             MerchantInfo merchantInfo = new MerchantInfo();
             merchantInfo.setName("SANDBOX MERCHANT NAME");
             body.setMerchantMetaData(merchantMetaData);
