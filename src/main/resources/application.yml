@@ -5,13 +5,13 @@ spring:
       prefix: /WEB-INF/pages/
       suffix: .jsp
   datasource:
-#    url: jdbc:mysql://localhost:3306/cashless-demo
-#    username: cashless
-#    password: N0sSl#123
-    type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://cashless-mysql.mysql.database.azure.com:3306/cashless?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: cashless@cashless-mysql
-    password: "N0sSl#123"
+    url: jdbc:mysql://localhost:3306/cashless-demo
+    username: cashless
+    password: N0sSl#123
+#    type: com.zaxxer.hikari.HikariDataSource
+#    url: jdbc:mysql://cashless-mysql.mysql.database.azure.com:3306/cashless?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+#    username: cashless@cashless-mysql
+#    password: "N0sSl#123"
     hikari:
       maximum-pool-size: 30
       onnection-timeout: 180000
