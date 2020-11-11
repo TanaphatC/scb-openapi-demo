@@ -45,37 +45,11 @@
       <div class="container">
          <div style="display: flex;justify-content: center;">
             <div class="link-container">
-               <h2 style="color: #004A94">Pay by Bank Apps</h2>
-               <div>
-                  <div style="margin-bottom: 5px;">
-                     <div>
-                        <a href="#">
-                        <img src="/images/bay.jpg" alt="KMA">
-                        </a>
-                        <a href="#">
-                        <img src="/images/kbank.jpg" alt="Kplus">
-                        </a>
-                     </div>
-                     <div>
-                        <a id="scbdeeplink" href="${scbdeeplink}">
-                            <img src="/images/scb.jpg" alt="SCB Easy">
-                        </a>
-                        <a href="#">
-                            <img src="/images/ktb.jpg" alt="KTB">
-                        </a>
-                     </div>
-                  </div>
-                  <a href="${scbtransactions}" target="_blank" style="color:#004A94">
-                      <small class="status">status</small>
-                  </a>
-               </div>
+               <h2 style="color: #004A94">${status}</h2>
             </div>
          </div>
          <div style="margin-top: 1em;font-size: 0.7em;">
             Service Provided by Cashless API
-         </div>
-         <div style="margin-top: 1em;font-size: 0.7em;">
-            deeplink_id: f4147edd-d697-4ecd-8483-1439c6cdc9a7
          </div>
       </div>
    </body>

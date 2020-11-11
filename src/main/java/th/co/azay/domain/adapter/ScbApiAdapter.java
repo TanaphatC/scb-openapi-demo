@@ -1,5 +1,7 @@
 package th.co.azay.domain.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -11,6 +13,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import th.co.azay.application.constants.ScbTransactionStatus;
 import th.co.azay.domain.entity.Deeplink;
 import th.co.azay.domain.entity.PaymentTrans;
 import th.co.azay.model.*;
@@ -40,9 +43,9 @@ public class ScbApiAdapter implements ScbAdapter {
             map.add("state","");
             map.add("codeChallenge","");
 
-            String transactionId = getTransactionId();
-            HttpHeaders headers = getDefaultHttpHeader(transactionId);
-            logger.info("transactionId = {}", transactionId);
+            String requestUId = getRequestUId();
+            HttpHeaders headers = getDefaultHttpHeader(requestUId);
+            logger.info("requestUId = {}", requestUId);
 
             HttpEntity<MultiValueMap<String,String>> payload = new HttpEntity<>(map, headers);
 
@@ -73,14 +76,13 @@ public class ScbApiAdapter implements ScbAdapter {
         DeeplinkApiResponse result;
         List<Deeplink> deeplinkList = new ArrayList<>();
         try{
-//            UUID uuid = UUID.randomUUID();
-            String transactionId = getTransactionId();
-            HttpHeaders headers = getDefaultHttpHeader(transactionId);
+            String requestUId = getRequestUId();
+            HttpHeaders headers = getDefaultHttpHeader(requestUId);
             headers.add("channel", "scbeasy");
             String authorization = accessToken.getData().getTokenType() + " " + accessToken.getData().getAccessToken();
             headers.add("authorization", authorization);
             logger.info("authorization = {}", authorization);
-            logger.info("transactionId = {}", transactionId);
+            logger.info("requestUId = {}", requestUId);
 
             DeeplinkForPaymentRequest body = new DeeplinkForPaymentRequest();
 
@@ -105,11 +107,13 @@ public class ScbApiAdapter implements ScbAdapter {
             installmentPaymentPlan.setProdCode("1001");
             body.setInstallmentPaymentPlan(installmentPaymentPlan);
 
-            body.setTransactionSubType(cashlessPayment.getTransactionSubType());
+            List<String> transSubType = cashlessPayment.getTransactionSubType();
+            logger.info("trans sub type = {}", transSubType);
+            body.setTransactionSubType(transSubType);
             body.setTransactionType("PURCHASE");
 
             MerchantMetaData merchantMetaData = new MerchantMetaData();
-            merchantMetaData.setCallbackUrl("http://cashless-app.southeastasia.azurecontainer.io:8080/api/redirect");
+            merchantMetaData.setCallbackUrl("http://cashless-app.southeastasia.azurecontainer.io:8080/redirect");
             MerchantInfo merchantInfo = new MerchantInfo();
             merchantInfo.setName("SANDBOX MERCHANT NAME");
             body.setMerchantMetaData(merchantMetaData);
@@ -126,7 +130,7 @@ public class ScbApiAdapter implements ScbAdapter {
 
             // insert payment detail to DB
             PaymentTrans paymentTrans = new PaymentTrans();
-            paymentTrans.setTransId(transactionId);
+            paymentTrans.setTransId(requestUId);
             paymentTrans.setTouchpoint("MYALLIANZ");
             paymentTrans.setTransSubType(body.getTransactionSubType().toString());
             paymentTrans.setTransType(body.getTransactionType());
@@ -152,10 +156,13 @@ public class ScbApiAdapter implements ScbAdapter {
             if(result == null){
                 throw new RestClientException("access token is null");
             }else{
+                logger.info("deeplink = {}", result);
                 Deeplink scbDeeplink = new Deeplink();
-                scbDeeplink.setTransId(transactionId);
+                scbDeeplink.setTransId(requestUId);
                 scbDeeplink.setBank("scb");
                 scbDeeplink.setDeeplink(result.getData().getDeeplinkUrl());
+                scbDeeplink.setBankTransId(result.getData().getTransactionId());
+                scbDeeplink.setCreateDate(new Date());
 
                 deeplinkList.add(scbDeeplink);
             }
@@ -173,7 +180,51 @@ public class ScbApiAdapter implements ScbAdapter {
         return result;
     }
 
-    private String getTransactionId(){
+    @Override
+    public ScbTransactions getTransactions(String transactionId, AccessTokenApiResponse accessToken) throws JsonProcessingException {
+        ScbTransactions scbTransactions;
+
+        String requestUId = getRequestUId();
+        HttpHeaders headers = getDefaultHttpHeader(requestUId);
+        headers.add("channel", "scbeasy");
+        String authorization = accessToken.getData().getTokenType() + " " + accessToken.getData().getAccessToken();
+        headers.add("authorization", authorization);
+        logger.info("authorization = {}", authorization);
+        logger.info("transactionId = {}", transactionId);
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+
+        String transactionApiUrl = "/v2/transactions/"+transactionId;
+        String endpoint = getFullEndpoint(transactionApiUrl);
+
+        logger.info("get SCB transaction");
+        // call scb api
+        ResponseEntity<ScbTransactionsApiResponse> response = scbRestTemplate.exchange(endpoint, HttpMethod.GET, request, ScbTransactionsApiResponse.class);
+
+        logger.info("response status code = {}", response.getStatusCode());
+        if(!response.hasBody()){
+            logger.warn("Response has no body");
+            return null;
+        }
+        scbTransactions = response.getBody().getData();
+
+        if(scbTransactions == null){
+            throw new RestClientException("SCB transaction not found");
+        }else{
+            if(scbTransactions.getStatusCode() != null){
+                ScbTransactionStatus scbTransactionStatus = ScbTransactionStatus.getScbTransactionStatus(scbTransactions.getStatusCode());
+                scbTransactions.setStatusCodeDesc(scbTransactionStatus.getValue());
+                logger.info("SCB transaction status = {}", scbTransactionStatus.getValue());
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
+            logger.info("SCB transaction detail = \r\n {}", prettyJson);
+        }
+        return scbTransactions;
+    }
+
+    private String getRequestUId(){
         UUID uuid = UUID.randomUUID();
         return uuid.toString() + "-" + System.currentTimeMillis();
     }
