@@ -77,16 +77,24 @@
                   value="12" readonly>
               </div>
             </div>
-            <button type="submit" class="w-100 btn btn-primary mt-3">
+            <button type="submit" class="w-100 btn btn-primary mt-3" id="cp">
               Cashless Payment
             </button>
+            <button type="button" class="w-100 btn btn-primary mt-3" id="qr">
+              QR Code
+            </button>
+          </form>
+          <form id="qrcode_submit" action="/qrcode" method="post">
+            <input type="hidden" id="qrcode" name="qrcode">
           </form>
 
         </div>
       </div>
     </div>
     <script>
-      const formBtn = document.querySelector('button');
+      const formBtn = document.querySelector('#cp');
+      const qrBtn = document.querySelector('#qr');
+
       function getValue(query) {
         return document.querySelector(query).value;
       }
@@ -129,6 +137,38 @@
         })
         .finally(() => {
             formBtn.disabled = false;
+        });
+      });
+
+      qrBtn.addEventListener('click', e => {
+        e.preventDefault();
+        qrBtn.disabled = true;
+
+        fetch('/api/generateQRCode', {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'same-origin',
+          referrerPolicy: 'no-referrer',
+          redirect: 'follow',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            "qrType": "PPCS",
+            "amount": getValue('#billAmountInput'),
+          }),
+        })
+        .then(response => {
+            return response.json()
+        })
+        .then(json => {
+            console.log(json)
+            var qrcode = json.scbDeeplink
+            document.querySelector('#qrcode').value = qrcode;
+            document.getElementById("qrcode_submit").submit();
+        })
+        .finally(() => {
+            qrBtn.disabled = false;
         });
       });
 

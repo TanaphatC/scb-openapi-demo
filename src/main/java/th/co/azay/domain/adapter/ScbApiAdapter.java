@@ -33,53 +33,53 @@ public class ScbApiAdapter implements ScbAdapter {
     PaymentTransactionsService paymentTransactionsService;
 
     @Override
-    public AccessTokenApiResponse generateAccessToken() {
+    public AccessTokenData generateAccessToken() {
         AccessTokenApiResponse accessToken;
-        try{
+        try {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-            map.add("applicationKey","l79b60f8086f9145df9f8c53c74dd98808");
-            map.add("applicationSecret","1f7610a4f1fc48649f4c9598f51d3a3b");
-            map.add("authCode","");
-            map.add("state","");
-            map.add("codeChallenge","");
+            map.add("applicationKey", "l79b60f8086f9145df9f8c53c74dd98808");
+            map.add("applicationSecret", "1f7610a4f1fc48649f4c9598f51d3a3b");
+            map.add("authCode", "");
+            map.add("state", "");
+            map.add("codeChallenge", "");
 
             String requestUId = getRequestUId();
             HttpHeaders headers = getDefaultHttpHeader(requestUId);
             logger.info("requestUId = {}", requestUId);
 
-            HttpEntity<MultiValueMap<String,String>> payload = new HttpEntity<>(map, headers);
+            HttpEntity<MultiValueMap<String, String>> payload = new HttpEntity<>(map, headers);
 
             String GENERATE_TOKEN_API = "/v1/oauth/token";
             String endpoint = this.getFullEndpoint(GENERATE_TOKEN_API);
             logger.info("get access token from scb");
             ResponseEntity<AccessTokenApiResponse> response = scbRestTemplate.exchange(endpoint, HttpMethod.POST, payload, AccessTokenApiResponse.class);
             logger.info("response status code = {}", response.getStatusCode());
-            if(!response.hasBody()){
+            if (!response.hasBody()) {
                 logger.warn("Response has no body");
                 return null;
             }
             accessToken = response.getBody();
-            if(accessToken == null){
+            if (accessToken == null) {
                 throw new RestClientException("access token is null");
             }
 
             logger.debug("get access token success");
-        }catch(RestClientException rcex){
-            logger.error("Error has occurred while get access token (SCB API): {}",  rcex.getMessage());
+        } catch (RestClientException rcex) {
+            logger.error("Error has occurred while get access token (SCB API): {}", rcex.getMessage());
             accessToken = null;
         }
-        return accessToken;
+        return accessToken.getData();
     }
 
     @Override
-    public DeeplinkApiResponse deeplinkForPayment(AccessTokenApiResponse accessToken, CashlessPaymentRequest cashlessPayment) {
+    public DeeplinkApiResponse deeplinkForPayment(AccessTokenData accessToken, CashlessPaymentRequest cashlessPayment) {
         DeeplinkApiResponse result;
         List<Deeplink> deeplinkList = new ArrayList<>();
-        try{
+        try {
             String requestUId = getRequestUId();
             HttpHeaders headers = getDefaultHttpHeader(requestUId);
             headers.add("channel", "scbeasy");
-            String authorization = accessToken.getData().getTokenType() + " " + accessToken.getData().getAccessToken();
+            String authorization = accessToken.getTokenType() + " " + accessToken.getAccessToken();
             headers.add("authorization", authorization);
             logger.info("authorization = {}", authorization);
             logger.info("requestUId = {}", requestUId);
@@ -147,15 +147,15 @@ public class ScbApiAdapter implements ScbAdapter {
             ResponseEntity<DeeplinkApiResponse> response = scbRestTemplate.postForEntity(endpoint, request, DeeplinkApiResponse.class);
 
             logger.info("response status code = {}", response.getStatusCode());
-            if(!response.hasBody()){
+            if (!response.hasBody()) {
                 logger.warn("Response has no body");
                 return null;
             }
             result = response.getBody();
 
-            if(result == null){
+            if (result == null) {
                 throw new RestClientException("access token is null");
-            }else{
+            } else {
                 logger.info("deeplink = {}", result);
                 Deeplink scbDeeplink = new Deeplink();
                 scbDeeplink.setTransId(requestUId);
@@ -168,68 +168,132 @@ public class ScbApiAdapter implements ScbAdapter {
             }
 
             // insert deep link detail
-            if(!deeplinkList.isEmpty()){
+            if (!deeplinkList.isEmpty()) {
                 paymentTransactionsService.insertDeeplink(deeplinkList);
             }
 
             logger.debug("get deeplink for payment success");
-        }catch(RestClientException rcex){
-            logger.error("Error has occurred while get deeplink for payment (SCB API): {}",  rcex.getMessage());
+        } catch (RestClientException rcex) {
+            logger.error("Error has occurred while get deeplink for payment (SCB API): {}", rcex.getMessage());
             result = null;
         }
         return result;
     }
 
     @Override
-    public ScbTransactions getTransactions(String transactionId, AccessTokenApiResponse accessToken) throws JsonProcessingException {
+    public ScbTransactions getTransactions(String transactionId, AccessTokenData accessToken) throws JsonProcessingException {
         ScbTransactions scbTransactions;
+        try {
 
-        String requestUId = getRequestUId();
-        HttpHeaders headers = getDefaultHttpHeader(requestUId);
-        headers.add("channel", "scbeasy");
-        String authorization = accessToken.getData().getTokenType() + " " + accessToken.getData().getAccessToken();
-        headers.add("authorization", authorization);
-        logger.info("authorization = {}", authorization);
-        logger.info("transactionId = {}", transactionId);
+            String requestUId = getRequestUId();
+            HttpHeaders headers = getDefaultHttpHeader(requestUId);
+            headers.add("channel", "scbeasy");
+            String authorization = accessToken.getTokenType() + " " + accessToken.getAccessToken();
+            headers.add("authorization", authorization);
+            logger.info("authorization = {}", authorization);
+            logger.info("transactionId = {}", transactionId);
 
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
+            HttpEntity<String> request = new HttpEntity<>(null, headers);
 
-        String transactionApiUrl = "/v2/transactions/"+transactionId;
-        String endpoint = getFullEndpoint(transactionApiUrl);
+            String transactionApiUrl = "/v2/transactions/" + transactionId;
+            String endpoint = getFullEndpoint(transactionApiUrl);
 
-        logger.info("get SCB transaction");
-        // call scb api
-        ResponseEntity<ScbTransactionsApiResponse> response = scbRestTemplate.exchange(endpoint, HttpMethod.GET, request, ScbTransactionsApiResponse.class);
+            logger.info("get SCB transaction");
+            // call scb api
+            ResponseEntity<ScbTransactionsApiResponse> response = scbRestTemplate.exchange(endpoint, HttpMethod.GET, request, ScbTransactionsApiResponse.class);
 
-        logger.info("response status code = {}", response.getStatusCode());
-        if(!response.hasBody()){
-            logger.warn("Response has no body");
-            return null;
-        }
-        scbTransactions = response.getBody().getData();
-
-        if(scbTransactions == null){
-            throw new RestClientException("SCB transaction not found");
-        }else{
-            if(scbTransactions.getStatusCode() != null){
-                ScbTransactionStatus scbTransactionStatus = ScbTransactionStatus.getScbTransactionStatus(scbTransactions.getStatusCode());
-                scbTransactions.setStatusCodeDesc(scbTransactionStatus.getValue());
-                logger.info("SCB transaction status = {}", scbTransactionStatus.getValue());
+            logger.info("response status code = {}", response.getStatusCode());
+            if (!response.hasBody()) {
+                logger.warn("Response has no body");
+                return null;
             }
+            scbTransactions = response.getBody().getData();
 
-            ObjectMapper mapper = new ObjectMapper();
-            String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
-            logger.info("SCB transaction detail = \r\n {}", prettyJson);
+            if (scbTransactions == null) {
+                throw new RestClientException("SCB transaction not found");
+            } else {
+                if (scbTransactions.getStatusCode() != null) {
+                    ScbTransactionStatus scbTransactionStatus = ScbTransactionStatus.getScbTransactionStatus(scbTransactions.getStatusCode());
+                    scbTransactions.setStatusCodeDesc(scbTransactionStatus.getValue());
+                    logger.info("SCB transaction status = {}", scbTransactionStatus.getValue());
+                }
+
+                ObjectMapper mapper = new ObjectMapper();
+                String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
+                logger.info("SCB transaction detail = \r\n {}", prettyJson);
+            }
+        } catch (RestClientException rcex) {
+            logger.error("Error has occurred while get transactions (SCB API): {}", rcex.getMessage());
+            scbTransactions = null;
         }
         return scbTransactions;
     }
 
-    private String getRequestUId(){
+    @Override
+    public GenerateQRCodeData generateQRCode(AccessTokenData accessToken, GenerateQRCodeRequest generateQRCodeRequest) {
+        GenerateQRCodeData generateQRCodeData = null;
+        try {
+
+            String requestUId = getRequestUId();
+            HttpHeaders headers = getDefaultHttpHeader(requestUId);
+            String authorization = accessToken.getTokenType() + " " + accessToken.getAccessToken();
+            headers.add("authorization", authorization);
+            logger.info("authorization = {}", authorization);
+            logger.info("requestUId = {}", requestUId);
+
+            generateQRCodeRequest.setCsExtExpiryTime("60");
+            generateQRCodeRequest.setInvoice("INVOICE");
+            generateQRCodeRequest.setMerchantId("567885242752383");
+            generateQRCodeRequest.setTerminalId("701167406717881");
+
+            generateQRCodeRequest.setPpType("BILLERID");
+            generateQRCodeRequest.setPpId("187874780050850"); // merchant biller id
+            generateQRCodeRequest.setRef1("REFERENCE1");
+            generateQRCodeRequest.setRef2("REFERENCE2");
+            generateQRCodeRequest.setRef3("SCB");
+
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+            String bodyString = gson.toJson(generateQRCodeRequest);
+
+            logger.info("body is {}", bodyString);
+//            HttpEntity<String> request = new HttpEntity<>(bodyString, headers);
+
+            HttpEntity<GenerateQRCodeRequest> request = new HttpEntity<>(generateQRCodeRequest, headers);
+
+            String generateQRCodeApiUrl = "/v1/payment/qrcode/create";
+            String endpoint = getFullEndpoint(generateQRCodeApiUrl);
+
+            logger.info("Generating QR Code...");
+            // call scb api
+            ResponseEntity<GenerateQRCodeResponse> response = scbRestTemplate.exchange(endpoint, HttpMethod.POST, request, GenerateQRCodeResponse.class);
+
+            logger.info("response status code = {}", response.getStatusCode());
+            if (!response.hasBody()) {
+                logger.warn("Response has no body");
+                return null;
+            }
+            generateQRCodeData = response.getBody().getData();
+
+            if (generateQRCodeData == null) {
+                throw new RestClientException("SCB transaction not found");
+            } else {
+                ObjectMapper mapper = new ObjectMapper();
+                String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(generateQRCodeData);
+                logger.info("SCB QR code detail = \r\n {}", prettyJson);
+            }
+        } catch (RestClientException | JsonProcessingException rcex) {
+            logger.error("Error has occurred while generate QR code (SCB API): {}", rcex.getMessage());
+            generateQRCodeData = null;
+        }
+        return generateQRCodeData;
+    }
+
+    private String getRequestUId() {
         UUID uuid = UUID.randomUUID();
         return uuid.toString() + "-" + System.currentTimeMillis();
     }
 
-    private String getFullEndpoint(String endpoint){
+    private String getFullEndpoint(String endpoint) {
         StringBuilder fullEndpoint = new StringBuilder();
         String SCB_URL = "https://api-sandbox.partners.scb/partners/sandbox";
         fullEndpoint.append(SCB_URL);
@@ -238,12 +302,12 @@ public class ScbApiAdapter implements ScbAdapter {
         return fullEndpoint.toString();
     }
 
-    private HttpHeaders getDefaultHttpHeader(String transactionId){
+    private HttpHeaders getDefaultHttpHeader(String transactionId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("accept-language","EN");
+        headers.add("accept-language", "EN");
         headers.add("requestUId", transactionId);
-        headers.add("resourceOwnerId","Cashless");
+        headers.add("resourceOwnerId", "Cashless");
         return headers;
     }
 }

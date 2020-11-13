@@ -4,9 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -32,6 +30,12 @@ public class WebController {
 		logger.info("redirect status = {}", status);
 		model.put("status", status);
 		return "success";
+	}
+
+	@PostMapping("/qrcode")
+	public String qrcode(@RequestParam(name = "qrcode") String qrcode, Map<String, Object> model){
+		model.put("qrcode", qrcode);
+		return "qrcode";
 	}
 
 }

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import th.co.azay.domain.adapter.ScbAdapter;
 import th.co.azay.model.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 public class ApiController {
@@ -24,7 +26,7 @@ public class ApiController {
     public ResponseEntity deeplink(@RequestBody CashlessPaymentRequest request) {
         logger.info("json request: {}", request);
 
-        AccessTokenApiResponse accessToken = scbAdapter.generateAccessToken();
+        AccessTokenData accessToken = scbAdapter.generateAccessToken();
         logger.info("scb token response = {}", accessToken);
 
         DeeplinkApiResponse deeplink = scbAdapter.deeplinkForPayment(accessToken, request);
@@ -37,11 +39,24 @@ public class ApiController {
     public ResponseEntity transactions(@PathVariable("transactionId") String transactionId) throws JsonProcessingException {
         logger.info("transactionId: {}", transactionId);
 
-        AccessTokenApiResponse accessToken = scbAdapter.generateAccessToken();
+        AccessTokenData accessToken = scbAdapter.generateAccessToken();
 
         ScbTransactions scbTransactions = scbAdapter.getTransactions(transactionId, accessToken);
 
         return ResponseEntity.ok(scbTransactions);
+    }
+
+    @PostMapping("/generateQRCode")
+    public ResponseEntity generateQRCode(@RequestBody GenerateQRCodeRequest generateQRCodeRequest) throws JsonProcessingException {
+        logger.info("Call Generate QR Code api");
+        logger.info("qrType: {}, amount: {}", generateQRCodeRequest.getQrType(), generateQRCodeRequest.getAmount());
+
+        AccessTokenData accessToken = scbAdapter.generateAccessToken();
+
+        GenerateQRCodeData generateQRCodeData = scbAdapter.generateQRCode(accessToken, generateQRCodeRequest);
+
+        String redirect = "/qrcode?qrcode=1235";
+        return ResponseEntity.ok(new DeeplinkResponse(generateQRCodeData.getQrImage()));
     }
 
     @GetMapping("/version")

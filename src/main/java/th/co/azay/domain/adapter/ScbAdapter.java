@@ -1,13 +1,12 @@
 package th.co.azay.domain.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import th.co.azay.model.AccessTokenApiResponse;
-import th.co.azay.model.CashlessPaymentRequest;
-import th.co.azay.model.DeeplinkApiResponse;
-import th.co.azay.model.ScbTransactions;
+import org.apache.logging.log4j.core.tools.Generate;
+import th.co.azay.model.*;
 
 public interface ScbAdapter {
-    AccessTokenApiResponse generateAccessToken();
-    DeeplinkApiResponse deeplinkForPayment(AccessTokenApiResponse accessToken, CashlessPaymentRequest cashlessPayment);
-    ScbTransactions getTransactions(String transactionId, AccessTokenApiResponse accessToken) throws JsonProcessingException;
+    AccessTokenData generateAccessToken();
+    DeeplinkApiResponse deeplinkForPayment(AccessTokenData accessToken, CashlessPaymentRequest cashlessPayment);
+    ScbTransactions getTransactions(String transactionId, AccessTokenData accessToken) throws JsonProcessingException;
+    GenerateQRCodeData generateQRCode(AccessTokenData accessToken, GenerateQRCodeRequest generateQRCodeRequest);
 }
