@@ -1,8 +1,6 @@
 package th.co.azay.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import th.co.azay.domain.adapter.ScbAdapter;
 import th.co.azay.model.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -47,7 +43,7 @@ public class ApiController {
     }
 
     @PostMapping("/generateQRCode")
-    public ResponseEntity generateQRCode(@RequestBody GenerateQRCodeRequest generateQRCodeRequest) throws JsonProcessingException {
+    public ResponseEntity generateQRCode(@RequestBody GenerateQRCodeRequest generateQRCodeRequest) {
         logger.info("Call Generate QR Code api");
         logger.info("qrType: {}, amount: {}", generateQRCodeRequest.getQrType(), generateQRCodeRequest.getAmount());
 
@@ -55,13 +51,17 @@ public class ApiController {
 
         GenerateQRCodeData generateQRCodeData = scbAdapter.generateQRCode(accessToken, generateQRCodeRequest);
 
-        String redirect = "/qrcode?qrcode=1235";
         return ResponseEntity.ok(new DeeplinkResponse(generateQRCodeData.getQrImage()));
+    }
+
+    @PostMapping("/callback")
+    public void callback(@RequestBody String callbackData) {
+        logger.info("Callback data is: \r\n {}", callbackData);
     }
 
     @GetMapping("/version")
     public String redirect(){
-        return "1.0.3";
+        return "1.0.4";
     }
 
 }
